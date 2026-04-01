@@ -168,8 +168,3 @@ This project is intentionally structured to provide DevOps practice across:
 - [ ] Prometheus + Grafana monitoring
 - [ ] Frontend
 
----
-
-## License
-
-MIT
