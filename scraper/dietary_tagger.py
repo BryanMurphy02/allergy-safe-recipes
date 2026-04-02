@@ -53,7 +53,6 @@ NON_VEGAN_KEYWORDS = [
     "aioli", "meringue", "albumen", "gelatin", "gelatine",
     "royal icing",           # typically contains egg white
     "lard", "suet",
-    "coconut milk",          # vegan-safe — not included here
     "anchovy", "anchovies",
     "worcestershire sauce",
     "fish sauce",
