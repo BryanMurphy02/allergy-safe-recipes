@@ -2,6 +2,9 @@ name: CI
 
 on:
   push:
+    branches:
+      - main
+      - dev
   pull_request:
     branches:
       - main
@@ -21,7 +24,6 @@ jobs:
         run: ruff check .
 
   test:
-    if: github.event_name == 'pull_request'
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
@@ -30,5 +32,12 @@ jobs:
           python-version: "3.11"
       - name: Install dependencies
         run: pip install -r requirements-dev.txt
-      - name: Run tests
-        run: pytest
+      - name: Run scraper tests
+        run: pytest scraper/tests/ -v
+        env:
+          PYTHONPATH: scraper
+
+      - name: Run api tests
+        run: pytest api/tests/ -v
+        env:
+          PYTHONPATH: api
