@@ -15,11 +15,9 @@ differences from BBC Good Food:
   - They use "recipeCategory" more than "recipeCuisine"
 """
 
-import json
 import logging
 import re
 import time
-from dataclasses import dataclass, field
 from typing import Optional
 
 import requests

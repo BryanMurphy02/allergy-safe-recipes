@@ -17,7 +17,7 @@ import os
 
 sys.path.insert(0, os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
 
-import pytest
+
 from main import normalise_ingredient
 from sources.bbc_good_food import (
     _parse_duration,
