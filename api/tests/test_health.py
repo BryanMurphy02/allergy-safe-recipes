@@ -36,7 +36,6 @@ def test_wait_for_db_retries_on_failure():
     failing immediately when the database isn't ready.
     """
     from database import wait_for_db
-    from sqlalchemy import create_engine
     from unittest.mock import MagicMock
 
     call_count = 0
