@@ -291,6 +291,10 @@ def _parse_duration(iso_duration: Optional[str]) -> Optional[int]:
     """
     if not iso_duration:
         return None
+    # Must look like an ISO 8601 duration — starts with P and
+    # contains at least one of H or M. Reject anything else.
+    if not iso_duration.startswith("P") or ("H" not in iso_duration and "M" not in iso_duration):
+        return None
     try:
         hours   = int(re.search(r"(\d+)H", iso_duration).group(1)) if "H" in iso_duration else 0
         minutes = int(re.search(r"(\d+)M", iso_duration).group(1)) if "M" in iso_duration else 0

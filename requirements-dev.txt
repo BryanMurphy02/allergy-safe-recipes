@@ -1,0 +1,3 @@
+-r scraper/requirements.txt
+ruff
+pytest
