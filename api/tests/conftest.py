@@ -26,12 +26,24 @@ from fastapi.testclient import TestClient
 from sqlalchemy import create_engine
 from sqlalchemy.orm import sessionmaker
 from sqlalchemy.pool import StaticPool
+from unittest.mock import patch
 
 from dependencies import get_db
 from main import app
 from models import Allergen, Base, DietaryTag, Recipe, RecipeAllergen, RecipeDietaryTag
 
 SQLITE_URL = "sqlite://"
+
+
+@pytest.fixture(autouse=True)
+def mock_wait_for_db():
+    """
+    Prevents wait_for_db() from trying to connect to a real
+    Postgres database when the TestClient starts up during tests.
+    Applied automatically to every test via autouse=True.
+    """
+    with patch("main.wait_for_db"):
+        yield
 
 
 @pytest.fixture()
