@@ -83,7 +83,9 @@ class TestGetRecipes:
 class TestExcludeAllergens:
     def test_excludes_recipe_with_dairy(self, client, db_session):
         dairy_recipe = make_recipe(db_session, title="Creamy Pasta",
-                                   url="https://www.bbcgoodfood.com/recipes/creamy-pasta")
+                                url="https://www.bbcgoodfood.com/recipes/creamy-pasta")
+        make_recipe(db_session, title="Tomato Salad",
+                    url="https://www.bbcgoodfood.com/recipes/tomato-salad")
 
         add_allergen_to_recipe(db_session, dairy_recipe, "dairy")
 
@@ -98,6 +100,8 @@ class TestExcludeAllergens:
                                     url="https://www.bbcgoodfood.com/recipes/satay")
         egg_recipe    = make_recipe(db_session, title="Omelette",
                                     url="https://www.bbcgoodfood.com/recipes/omelette")
+        make_recipe(db_session, title="Tomato Soup",
+                    url="https://www.bbcgoodfood.com/recipes/tomato-soup")
 
         add_allergen_to_recipe(db_session, peanut_recipe, "peanuts")
         add_allergen_to_recipe(db_session, egg_recipe, "egg")
@@ -122,7 +126,9 @@ class TestExcludeAllergens:
 class TestDietaryTagFilter:
     def test_filters_to_vegan_recipes(self, client, db_session):
         vegan_recipe = make_recipe(db_session, title="Lentil Soup",
-                                   url="https://www.bbcgoodfood.com/recipes/lentil-soup")
+                                url="https://www.bbcgoodfood.com/recipes/lentil-soup")
+        make_recipe(db_session, title="Chicken Soup",
+                    url="https://www.bbcgoodfood.com/recipes/chicken-soup")
 
         add_dietary_tag_to_recipe(db_session, vegan_recipe, "vegan")
 
