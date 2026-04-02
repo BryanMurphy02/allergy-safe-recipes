@@ -19,24 +19,15 @@ from sqlalchemy.orm import sessionmaker
 
 load_dotenv()
 
-DATABASE_URL = os.getenv("DATABASE_URL")
+DATABASE_URL = os.getenv("DATABASE_URL", "")
 
-if not DATABASE_URL:
-    raise EnvironmentError("DATABASE_URL is not set in environment")
-
-# The engine manages the actual connection pool to Postgres.
-# pool_pre_ping=True checks connections are alive before using them
-# — important for long-running services where connections can drop.
 engine = create_engine(
     DATABASE_URL,
     pool_pre_ping=True,
-)
+) if DATABASE_URL else None
 
-# SessionLocal is a factory — calling SessionLocal() creates a
-# new session. We never use it directly in route handlers,
-# instead get_db() in dependencies.py handles that cleanly.
 SessionLocal = sessionmaker(
     autocommit=False,
     autoflush=False,
     bind=engine,
-)
+) if engine else None

@@ -126,14 +126,12 @@ def get_recipes(
         allergen_ids = (
             db.query(Allergen.id)
             .filter(Allergen.name.in_(allergen_names))
-            .subquery()
+            .scalar_subquery()
         )
-        # Exclude any recipe that has a row in recipe_allergens
-        # matching one of the excluded allergen ids
         excluded_recipe_ids = (
             db.query(RecipeAllergen.recipe_id)
             .filter(RecipeAllergen.allergen_id.in_(allergen_ids))
-            .subquery()
+            .scalar_subquery()
         )
         query = query.filter(Recipe.id.notin_(excluded_recipe_ids))
 
@@ -146,7 +144,7 @@ def get_recipes(
                 tagged_recipe_ids = (
                     db.query(RecipeDietaryTag.recipe_id)
                     .filter(RecipeDietaryTag.dietary_tag_id == tag.id)
-                    .subquery()
+                    .scalar_subquery()
                 )
                 query = query.filter(Recipe.id.in_(tagged_recipe_ids))
 

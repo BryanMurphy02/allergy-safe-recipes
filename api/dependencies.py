@@ -26,10 +26,8 @@ from database import SessionLocal
 
 
 def get_db() -> Generator[Session, None, None]:
-    """
-    Yields a database session for the duration of a request.
-    Always closes the session when the request is finished.
-    """
+    if SessionLocal is None:
+        raise RuntimeError("DATABASE_URL is not configured")
     db = SessionLocal()
     try:
         yield db

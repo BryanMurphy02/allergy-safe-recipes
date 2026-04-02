@@ -12,7 +12,7 @@ and Mapped[] type annotations — this is the modern approach
 and gives better type checking than the older Column() style.
 """
 
-from datetime import datetime
+from datetime import datetime, timezone
 from typing import Optional
 
 from sqlalchemy import (
@@ -45,7 +45,7 @@ class Source(Base):
     name:       Mapped[str]          = mapped_column(String(100), nullable=False)
     base_url:   Mapped[str]          = mapped_column(String(255), nullable=False, unique=True)
     enabled:    Mapped[bool]         = mapped_column(Boolean, nullable=False, default=True)
-    created_at: Mapped[datetime]     = mapped_column(nullable=False, default=datetime.utcnow)
+    created_at: Mapped[datetime]     = mapped_column(nullable=False, default=lambda: datetime.now(timezone.utc))
 
     recipes:    Mapped[list["Recipe"]]    = relationship("Recipe", back_populates="source")
     scrape_logs: Mapped[list["ScrapeLog"]] = relationship("ScrapeLog", back_populates="source")
@@ -69,7 +69,7 @@ class Recipe(Base):
     total_time:  Mapped[Optional[int]] = mapped_column(Integer)
     servings:    Mapped[Optional[int]] = mapped_column(Integer)
     image_url:   Mapped[Optional[str]] = mapped_column(String(500))
-    scraped_at:  Mapped[datetime]      = mapped_column(nullable=False, default=datetime.utcnow)
+    scraped_at:  Mapped[datetime]      = mapped_column(nullable=False, default=lambda: datetime.now(timezone.utc))
 
     source:           Mapped["Source"]               = relationship("Source", back_populates="recipes")
     recipe_ingredients: Mapped[list["RecipeIngredient"]] = relationship("RecipeIngredient", back_populates="recipe", cascade="all, delete-orphan")
@@ -87,7 +87,7 @@ class Ingredient(Base):
     id:               Mapped[int]      = mapped_column(Integer, primary_key=True)
     raw_name:         Mapped[str]      = mapped_column(String(255), nullable=False, unique=True)
     normalised_name:  Mapped[str]      = mapped_column(String(255), nullable=False)
-    created_at:       Mapped[datetime] = mapped_column(nullable=False, default=datetime.utcnow)
+    created_at:       Mapped[datetime] = mapped_column(nullable=False, default=lambda: datetime.now(timezone.utc))
 
     recipe_ingredients:   Mapped[list["RecipeIngredient"]]   = relationship("RecipeIngredient", back_populates="ingredient")
     ingredient_allergens: Mapped[list["IngredientAllergen"]] = relationship("IngredientAllergen", back_populates="ingredient", cascade="all, delete-orphan")
@@ -204,6 +204,6 @@ class ScrapeLog(Base):
     url:           Mapped[str]           = mapped_column(String(500), nullable=False)
     status:        Mapped[str]           = mapped_column(String(20), nullable=False)
     error_message: Mapped[Optional[str]] = mapped_column(Text)
-    scraped_at:    Mapped[datetime]      = mapped_column(nullable=False, default=datetime.utcnow)
+    scraped_at:    Mapped[datetime]      = mapped_column(nullable=False, default=lambda: datetime.now(timezone.utc))
 
     source: Mapped["Source"] = relationship("Source", back_populates="scrape_logs")

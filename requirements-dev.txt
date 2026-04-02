@@ -1,3 +1,4 @@
 -r scraper/requirements.txt
+-r api/requirements.txt
 ruff
 pytest
