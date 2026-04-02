@@ -145,9 +145,25 @@ RAW_EGG_KEYWORDS = [
 # HELPER
 # ---------------------------------------------------------------
 
+# Ingredients that look non-vegan due to keyword matches but actually are vegan
+VEGAN_EXCEPTIONS = [
+    "coconut milk",
+    "coconut cream",
+    "coconut butter",
+    "almond milk",
+    "oat milk",
+    "soy milk",
+    "rice milk",
+    "oat cream",
+    "cocoa butter",
+]
+
 def _any_match(ingredient: str, keywords: list[str]) -> bool:
-    """Returns True if the ingredient contains any of the keywords."""
+    """Returns True if the ingredient contains any of the keywords,
+    accounting for vegan-safe exceptions."""
     name = ingredient.lower().strip()
+    if any(exc in name for exc in VEGAN_EXCEPTIONS):
+        return False
     return any(kw in name for kw in keywords)
 
 
