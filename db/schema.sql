@@ -17,8 +17,7 @@ CREATE TABLE sources (
 );
 
 INSERT INTO sources (name, base_url) VALUES
-    ('BBC Good Food',  'https://www.bbcgoodfood.com'),
-    ('Serious Eats',   'https://www.seriouseats.com');
+    ('BBC Good Food',  'https://www.bbcgoodfood.com');
 
 
 -- =============================================================

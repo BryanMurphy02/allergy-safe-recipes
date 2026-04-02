@@ -28,7 +28,7 @@ from dotenv import load_dotenv
 
 from allergen_matcher import match_allergens, is_raw_egg
 from dietary_tagger import tag_recipe
-from sources import bbc_good_food, serious_eats
+from sources import bbc_good_food
 
 load_dotenv()
 
@@ -344,7 +344,6 @@ def run_scraper():
     enabled sources defined in the .env file.
     """
     bbc_enabled  = os.getenv("BBC_ENABLED", "true").lower() == "true"
-    se_enabled   = os.getenv("SERIOUS_EATS_ENABLED", "true").lower() == "true"
     max_pages    = int(os.getenv("MAX_SITEMAPS", "2"))
 
     sources_to_run = []
@@ -354,13 +353,6 @@ def run_scraper():
             "base_url": "https://www.bbcgoodfood.com",
             "discover": lambda: bbc_good_food.discover_urls(max_pages),
             "parse":    bbc_good_food.parse_recipe,
-        })
-    if se_enabled:
-        sources_to_run.append({
-            "name":     "Serious Eats",
-            "base_url": "https://www.seriouseats.com",
-            "discover": lambda: serious_eats.discover_urls(max_pages),
-            "parse":    serious_eats.parse_recipe,
         })
 
     if not sources_to_run:
