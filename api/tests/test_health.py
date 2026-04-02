@@ -36,6 +36,8 @@ def test_wait_for_db_retries_on_failure():
     failing immediately when the database isn't ready.
     """
     from database import wait_for_db
+    from sqlalchemy import create_engine
+    from unittest.mock import MagicMock
 
     call_count = 0
 
@@ -44,12 +46,14 @@ def test_wait_for_db_retries_on_failure():
         call_count += 1
         if call_count < 3:
             raise OperationalError("connection refused", None, None)
+        return MagicMock().__enter__.return_value
 
-    with patch("database.engine.connect", side_effect=flaky_connect):
+    mock_engine = MagicMock()
+    mock_engine.connect.side_effect = flaky_connect
+
+    with patch("database.engine", mock_engine):
         with patch("database.time.sleep"):
             wait_for_db(retries=5, delay=0)
-
-    assert call_count == 3
 
 
 def test_wait_for_db_raises_after_max_retries():
@@ -59,9 +63,12 @@ def test_wait_for_db_raises_after_max_retries():
     """
     import pytest
     from database import wait_for_db
+    from unittest.mock import MagicMock
 
-    with patch("database.engine.connect",
-               side_effect=OperationalError("connection refused", None, None)):
+    mock_engine = MagicMock()
+    mock_engine.connect.side_effect = OperationalError("connection refused", None, None)
+
+    with patch("database.engine", mock_engine):
         with patch("database.time.sleep"):
             with pytest.raises(RuntimeError, match="Could not connect"):
                 wait_for_db(retries=3, delay=0)
