@@ -1,0 +1,51 @@
+# full name of the container stack
+name: allergy-safe-recipes
+services:
+  database:
+    image: postgres:15
+    container_name: database
+    environment:
+      POSTGRES_USER: ${DB_USER}
+      POSTGRES_PASSWORD: ${DB_PASSWORD}
+      POSTGRES_DB: ${DB_NAME}
+    ports:
+      - "${DB_PORT}:5432"
+    volumes:
+      # docker volume created down below
+      - postgres_data:/var/lib/postgresql/data
+      # running db/schema when spinning up the database for the first time
+      - ./db/schema.sql:/docker-entrypoint-initdb.d/schema.sql
+
+  scraper:
+    image: scraper-image
+    # build from the scraper Dockerfile
+    build: ./scraper
+    container_name: scraper
+    
+    environment:
+      # database url
+      DATABASE_URL: postgresql://${DB_USER}:${DB_PASSWORD}@database:5432/${DB_NAME}
+
+    # make sure the database is running first
+    depends_on:
+      - database
+
+  api:
+    image: api-image
+    # build from api Dockerfile
+    build: ./api
+    container_name: api
+
+    environment:
+      # database url
+      DATABASE_URL: postgresql://${DB_USER}:${DB_PASSWORD}@database:5432/${DB_NAME}
+
+    ports:
+      - 8000:8000
+    
+    # make sure the database is running first
+    depends_on:
+      - database
+
+volumes:
+  postgres_data:
