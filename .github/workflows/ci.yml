@@ -14,8 +14,8 @@ jobs:
   lint:
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@v4
-      - uses: actions/setup-python@v5
+      - uses: actions/checkout@v4.2.2
+      - uses: actions/setup-python@v5.4.0
         with:
           python-version: "3.11"
       - name: Install dependencies
@@ -26,8 +26,8 @@ jobs:
   test:
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@v4
-      - uses: actions/setup-python@v5
+      - uses: actions/checkout@v4.2.2
+      - uses: actions/setup-python@v5.4.0
         with:
           python-version: "3.11"
       - name: Install dependencies
@@ -41,3 +41,19 @@ jobs:
         run: pytest api/tests/ -v
         env:
           PYTHONPATH: api
+
+  build-scraper:
+    needs: [lint, test]
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4.2.2
+      - name: Build scraper image
+        run: docker build -f scraper/Dockerfile -t "scraper-image" .
+      
+  build-api:
+    needs: [lint, test]
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4.2.2
+      - name: Build api image
+        run: docker build -f api/Dockerfile -t "api-image" .

@@ -1,0 +1,77 @@
+# full name of the container stack
+name: allergy-safe-recipes
+
+# Three service stack:
+# database - postgres, initialized with db/schema.sql
+# scraper  - runs scheduler.py to scrape recipes into the database  
+# api      - fastapi serving recipes over HTTP on port 8001
+services:
+  database:
+    image: postgres:15
+    container_name: database
+    environment:
+      POSTGRES_USER: ${DB_USER}
+      POSTGRES_PASSWORD: ${DB_PASSWORD}
+      POSTGRES_DB: ${DB_NAME}
+    # need to make sure the DB_PORT isn't already in use on the server
+    ports:
+      - "${DB_PORT}:5432"
+    
+    # runs a health check on the database to see if it is taking connections
+    healthcheck:
+      test: ["CMD", "pg_isready", "-U", "${DB_USER}"]
+      interval: 5s
+      timeout: 5s
+      retries: 5
+
+    volumes:
+      # docker volume created down below
+      - postgres_data:/var/lib/postgresql/data
+      # running db/schema when spinning up the database for the first time
+      - ./db/schema.sql:/docker-entrypoint-initdb.d/schema.sql
+
+  scraper:
+    # gives the image a build name
+    image: scraper-image
+    # build from the scraper Dockerfile
+    build:
+      # allowing docker to see the entire repo when building in case files need to be shared
+      context: .
+      dockerfile: scraper/Dockerfile
+    container_name: scraper
+    
+    environment:
+      # database url loaded from the .env in project root
+      DATABASE_URL: postgresql://${DB_USER}:${DB_PASSWORD}@database:5432/${DB_NAME}
+
+    # make sure the database is running first and taking connections
+    depends_on:
+      database:
+        condition: service_healthy
+
+  api:
+    # gives the image a build name
+    image: api-image
+    # build from api Dockerfile
+    build:
+      # allowing docker to see the entire repo when building in case files need to be shared
+      context: .
+      dockerfile: api/Dockerfile
+    container_name: api
+
+    environment:
+      # database url
+      DATABASE_URL: postgresql://${DB_USER}:${DB_PASSWORD}@database:5432/${DB_NAME}
+
+    # running on local port 8001 because 8000 in use
+    ports:
+      - 8001:8000
+    
+    # make sure the database is running first and taking connections
+    depends_on:
+      database:
+        condition: service_healthy
+
+volumes:
+  # named volume so the database data persists
+  postgres_data:
