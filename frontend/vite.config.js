@@ -8,7 +8,7 @@ export default defineConfig({
     // container so you don't need nginx running locally.
     proxy: {
       "/api": {
-        target: "http://localhost:8001",
+        target: "http://host.docker.internal:8001",
         changeOrigin: true,
         rewrite: (path) => path.replace(/^\/api/, ""),
       },
