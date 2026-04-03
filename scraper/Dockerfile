@@ -11,4 +11,4 @@ RUN pip install --no-cache-dir -r requirements.txt
 # copy everything from scaper into the container
 COPY scraper/ .
 
-CMD ["python", "scraper/scheduler.py"]
+CMD ["python", "scheduler.py"]
