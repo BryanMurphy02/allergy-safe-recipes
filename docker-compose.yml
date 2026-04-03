@@ -10,6 +10,14 @@ services:
       POSTGRES_DB: ${DB_NAME}
     ports:
       - "${DB_PORT}:5432"
+    
+    # runs a health check on the database to see if it is taking connections
+    healthcheck:
+      test: ["CMD", "pg_isready", "-U", "${DB_USER}"]
+      interval: 5s
+      timeout: 5s
+      retries: 5
+
     volumes:
       # docker volume created down below
       - postgres_data:/var/lib/postgresql/data
@@ -29,9 +37,10 @@ services:
       # database url
       DATABASE_URL: postgresql://${DB_USER}:${DB_PASSWORD}@database:5432/${DB_NAME}
 
-    # make sure the database is running first
+    # make sure the database is running first and taking connections
     depends_on:
-      - database
+      database:
+        condition: service_healthy
 
   api:
     image: api-image
@@ -49,9 +58,10 @@ services:
     ports:
       - 8001:8000
     
-    # make sure the database is running first
+    # make sure the database is running first and taking connections
     depends_on:
-      - database
+      database:
+        condition: service_healthy
 
 volumes:
   postgres_data:
