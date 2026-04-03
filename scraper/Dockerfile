@@ -1,4 +1,4 @@
-FROM python:3.12-slim
+FROM python:3.11-slim
 
 WORKDIR /app
 
@@ -8,6 +8,7 @@ COPY scraper/requirements.txt .
 # don't have to give the file path since its now in the container
 RUN pip install --no-cache-dir -r requirements.txt
 
-COPY . .
+# copy everything from scaper into the container
+COPY scraper/ .
 
 CMD ["python", "scraper/schedulder.py"]
