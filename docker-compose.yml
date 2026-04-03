@@ -19,7 +19,10 @@ services:
   scraper:
     image: scraper-image
     # build from the scraper Dockerfile
-    build: ./scraper
+    build:
+      # allowing docker to see the entire repo when building in case files need to be shared
+      context: .
+      dockerfile: scraper/Dockerfile
     container_name: scraper
     
     environment:
@@ -33,7 +36,10 @@ services:
   api:
     image: api-image
     # build from api Dockerfile
-    build: ./api
+    build:
+      # allowing docker to see the entire repo when building in case files need to be shared
+      context: .
+      dockerfile: api/Dockerfile
     container_name: api
 
     environment:
@@ -41,7 +47,7 @@ services:
       DATABASE_URL: postgresql://${DB_USER}:${DB_PASSWORD}@database:5432/${DB_NAME}
 
     ports:
-      - 8000:8000
+      - 8001:8000
     
     # make sure the database is running first
     depends_on:
