@@ -5,6 +5,7 @@ name: allergy-safe-recipes
 # database - postgres, initialized with db/schema.sql
 # scraper  - runs scheduler.py to scrape recipes into the database  
 # api      - fastapi serving recipes over HTTP on port 8001
+# frontend - nginx serving the built React/Vue app on port 9001
 services:
   database:
     image: postgres:15
@@ -71,6 +72,21 @@ services:
     depends_on:
       database:
         condition: service_healthy
+
+  frontend:
+    # gives the image a build name
+    image: frontend-image
+    build:
+      # allowing docker to see the entire repo when building in case files need to be shared
+      context: .
+      dockerfile: frontend/Dockerfile
+    container_name: frontend
+
+    ports:
+      # random host port and then Nginx listening on port 80
+      - 9001:80
+    depends_on:
+      - api
 
 volumes:
   # named volume so the database data persists
