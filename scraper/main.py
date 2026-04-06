@@ -28,7 +28,7 @@ from dotenv import load_dotenv
 
 from allergen_matcher import match_allergens, is_raw_egg
 from dietary_tagger import tag_recipe
-from sources import bbc_good_food
+from sources import bbc_good_food, budget_bytes
 
 load_dotenv()
 
@@ -61,11 +61,12 @@ def get_db_connection():
 
 def normalise_ingredient(raw: str) -> str:
     """
-    Strips quantities, units, and preparation notes from a raw
-    ingredient string to produce a clean ingredient name.
+    Strips quantities, units, preparation notes, and prices
+    from a raw ingredient string to produce a clean name.
 
-    This is deliberately simple — good enough for allergen
-    matching without needing an NLP library.
+    Handles Budget Bytes price annotations e.g.:
+        "2 cups flour ($0.45)"  → "flour"
+        "4 Roma tomatoes ($1.35)" → "tomatoes"
 
     Examples:
         "200g dried spaghetti"         → "spaghetti"
@@ -75,6 +76,9 @@ def normalise_ingredient(raw: str) -> str:
         "100ml double cream"           → "double cream"
     """
     text = raw.lower().strip()
+
+    # Strip price annotations e.g. ($1.35) or ($0.45)
+    text = re.sub(r'\(\$[\d.]+\)', '', text)
 
     # Remove leading quantities: "200g", "2", "1/2", "a handful of"
     text = re.sub(r"^\d[\d/\.\s]*", "", text)
@@ -107,6 +111,7 @@ def normalise_ingredient(raw: str) -> str:
         "peeled", "pitted", "deseeded", "trimmed",
         "rinsed", "drained", "toasted", "roasted",
         "softened", "melted", "cooled", "warmed",
+        "boneless", "skinless", "room temperature",
     ]
     for adj in adjectives:
         text = re.sub(r"\b" + adj + r"\b", "", text, flags=re.IGNORECASE)
@@ -233,6 +238,8 @@ def process_recipe(cur, source_id: int, url: str, parse_fn) -> bool:
       7. Log the result
 
     Returns True on success, False on any failure.
+    None returned from parse_fn (non-recipe post) is treated
+    as a skip rather than a failure.
     """
     if recipe_already_scraped(cur, url):
         logger.info(f"Already scraped, skipping: {url}")
@@ -242,8 +249,9 @@ def process_recipe(cur, source_id: int, url: str, parse_fn) -> bool:
     # Parse the page
     recipe = parse_fn(url)
     if not recipe:
-        log_scrape(cur, source_id, url, "failed", "Parser returned None")
-        return False
+        # Silently skip non-recipe posts from Budget Bytes
+        log_scrape(cur, source_id, url, "skipped")
+        return True
 
     try:
         # Insert the recipe
@@ -343,20 +351,28 @@ def run_scraper():
     Main entry point. Runs the full scrape pipeline for all
     enabled sources defined in the .env file.
     """
-    bbc_enabled  = os.getenv("BBC_ENABLED", "true").lower() == "true"
-    max_pages    = int(os.getenv("MAX_SITEMAPS", "2"))
+    bbc_enabled    = os.getenv("BBC_ENABLED", "true").lower() == "true"
+    bb_enabled     = os.getenv("BUDGET_BYTES_ENABLED", "true").lower() == "true"
+    max_sitemaps   = int(os.getenv("MAX_SITEMAPS", "2"))
 
     sources_to_run = []
     if bbc_enabled:
         sources_to_run.append({
             "name":     "BBC Good Food",
             "base_url": "https://www.bbcgoodfood.com",
-            "discover": lambda: bbc_good_food.discover_urls(max_pages),
+            "discover": lambda: bbc_good_food.discover_urls(max_sitemaps),
             "parse":    bbc_good_food.parse_recipe,
+        })
+    if bb_enabled:
+        sources_to_run.append({
+            "name":     "Budget Bytes",
+            "base_url": "https://www.budgetbytes.com",
+            "discover": lambda: budget_bytes.discover_urls(max_sitemaps),
+            "parse":    budget_bytes.parse_recipe,
         })
 
     if not sources_to_run:
-        logger.warning("No sources enabled. Set BBC_ENABLED or SERIOUS_EATS_ENABLED in .env")
+        logger.warning("No sources enabled. Set BBC_ENABLED or BUDGET_BYTES_ENABLED in .env")
         return
 
     conn = get_db_connection()
