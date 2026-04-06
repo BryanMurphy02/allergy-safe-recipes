@@ -106,7 +106,7 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - name: Build frontend image
-        run: docker build -f frontend/Dockerfile -t "frontend-image"
+        run: docker build -f frontend/Dockerfile -t "frontend-image" .
       
   # ─────────────────────────────────────────────
   # JOB 5: BUILD API
