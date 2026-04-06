@@ -1,59 +1,126 @@
+# Name of the workflow — appears in the GitHub Actions tab
 name: CI
 
+# Defines what events trigger this workflow
 on:
+  # Run on pushes to main or dev branches
   push:
     branches:
       - main
       - dev
+  # Run on pull requests targeting main or dev
+  # This ensures code is validated before merging
   pull_request:
     branches:
       - main
       - dev
 
 jobs:
+  # ─────────────────────────────────────────────
+  # JOB 1: LINT
+  # Checks code style and catches unused imports
+  # Runs on every push and pull request
+  # ─────────────────────────────────────────────
   lint:
+    # Spins up a fresh Ubuntu virtual machine for this job
     runs-on: ubuntu-latest
     steps:
+      # Copies the repo onto the runner
       - uses: actions/checkout@v4.2.2
+
+      # Installs Python 3.11 on the runner
       - uses: actions/setup-python@v5.4.0
         with:
           python-version: "3.11"
+
+      # Installs linting and testing tools from requirements-dev.txt
+      # This file includes ruff, pytest, and app dependencies
       - name: Install dependencies
         run: pip install -r requirements-dev.txt
+
+      # Runs ruff linter against the entire repo
+      # Fails if any style errors or unused imports are found
       - name: Run linter
         run: ruff check .
 
+  # ─────────────────────────────────────────────
+  # JOB 2: TEST
+  # Runs pytest against scraper and api test suites
+  # Runs in parallel with lint — separate runner
+  # ─────────────────────────────────────────────
   test:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4.2.2
+
       - uses: actions/setup-python@v5.4.0
         with:
           python-version: "3.11"
+
       - name: Install dependencies
         run: pip install -r requirements-dev.txt
+
+      # Runs scraper tests
+      # PYTHONPATH tells pytest where to find the scraper modules
       - name: Run scraper tests
         run: pytest scraper/tests/ -v
         env:
           PYTHONPATH: scraper
 
+      # Runs api tests
+      # PYTHONPATH tells pytest where to find the api modules
       - name: Run api tests
         run: pytest api/tests/ -v
         env:
           PYTHONPATH: api
 
+  # ─────────────────────────────────────────────
+  # JOB 3: BUILD SCRAPER
+  # Builds the scraper Docker image to verify it
+  # compiles successfully. Runs after lint and test
+  # pass. Runs in parallel with build-api.
+  # ─────────────────────────────────────────────
   build-scraper:
+    # Only runs if both lint and test jobs pass
     needs: [lint, test]
     runs-on: ubuntu-latest
     steps:
+      # Repo must be checked out so Docker can access the Dockerfile and source code
       - uses: actions/checkout@v4.2.2
+
+      # Builds the scraper image from the repo root as build context
+      # -f specifies the Dockerfile location
+      # -t tags the image with a name
+      # . sets the build context to the repo root (allows sharing code between services)
       - name: Build scraper image
         run: docker build -f scraper/Dockerfile -t "scraper-image" .
+  
+  # ─────────────────────────────────────────────
+  # JOB 4: BUILD FRONTEND
+  # Builds the frontend Docker image to verify it
+  # compiles successfully. Runs after lint and test
+  # pass. Runs in parallel with build-scraper and build-api.
+  # ─────────────────────────────────────────────
+  build-frontend:
+    needs: [lint, test]
+    runs-on: ubuntu-latest
+    steps:
+      # Repo must be checked out so Docker can access the Dockerfile and source code
+      - uses: actions/checkout@v4.2.2
+      - name: Build frontend image
+        run: docker build -f frontend/Dockerfile -t "frontend-image" .
       
+  # ─────────────────────────────────────────────
+  # JOB 5: BUILD API
+  # Same as build-scraper but for the api service
+  # Runs in parallel with build-scraper
+  # ─────────────────────────────────────────────
   build-api:
     needs: [lint, test]
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4.2.2
+
+      # Builds the api image from the repo root as build context
       - name: Build api image
         run: docker build -f api/Dockerfile -t "api-image" .
