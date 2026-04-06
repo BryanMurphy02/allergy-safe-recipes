@@ -1,0 +1,108 @@
+# Name of the workflow — appears in the GitHub Actions tab
+name: Deploy
+
+on:
+  workflow_run:
+    workflows: ["CI"]
+    types:
+      - completed
+    branches:
+      - main
+
+jobs:
+
+  build-push-scraper:
+    # Spins up a fresh Ubuntu virtual machine for this job
+    runs-on: ubuntu-latest
+    steps:
+      # Copies the repo onto the runner
+      - uses: actions/checkout@v4.2.2
+
+      # logging into GHCR
+      - uses: docker/login-action@v3
+        with:
+          registry: ghcr.io
+          username: ${{ github.actor }}
+          password: ${{ secrets.GHCR_TOKEN }}
+      
+      # building and pushing scraper image
+      - uses: docker/build-push-action@v5
+        with:
+          context: .
+          file: scraper/Dockerfile
+          push: true
+          tags: ghcr.io/bryanmurphy02/scraper:latest
+
+
+  build-push-api:
+    # Spins up a fresh Ubuntu virtual machine for this job
+    runs-on: ubuntu-latest
+    steps:
+      # Copies the repo onto the runner
+      - uses: actions/checkout@v4.2.2
+      
+      # logging into GHCR
+      - uses: docker/login-action@v3
+        with:
+          registry: ghcr.io
+          username: ${{ github.actor }}
+          password: ${{ secrets.GHCR_TOKEN }}
+
+      # building and pushing api image
+      - uses: docker/build-push-action@v5
+        with:
+          context: .
+          file: api/Dockerfile
+          push: true
+          tags: ghcr.io/bryanmurphy02/api:latest
+
+  build-push-frontend:
+    # Spins up a fresh Ubuntu virtual machine for this job
+    runs-on: ubuntu-latest
+    steps:
+      # Copies the repo onto the runner
+      - uses: actions/checkout@v4.2.2
+      
+      # logging into GHCR
+      - uses: docker/login-action@v3
+        with:
+          registry: ghcr.io
+          username: ${{ github.actor }}
+          password: ${{ secrets.GHCR_TOKEN }}
+
+      # building and pushing frontend image
+      - uses: docker/build-push-action@v5
+        with:
+          context: .
+          file: frontend/Dockerfile
+          push: true
+          tags: ghcr.io/bryanmurphy02/frontend:latest
+
+  # deploying new images to server
+  deploy-latest-images:
+
+    # checking to make sure the CI was actually a success and didn't just "complete"
+    if: ${{ github.event.workflow_run.conclusion == 'success' }}
+
+    # needs the following jobs to be completed to run
+    needs: [build-push-scraper, build-push-api, build-push-frontend]
+
+    # Spins up a fresh Ubuntu virtual machine for this job
+    runs-on: ubuntu-latest
+    steps:
+      # joining the tailscale network
+      - uses: tailscale/github-action@v2
+        with:
+          authkey: ${{ secrets.TAILSCALE_AUTHKEY }}
+      
+      # SSH into server and pull latest
+      - uses: appleboy/ssh-action@v1
+        with:
+          host: ${{ secrets.SERVER_HOST }}
+          username: ${{ secrets.SERVER_USER }}
+          key: ${{ secrets.SSH_PRIVATE_KEY }}
+          script: |
+            cd /opt/docker/allergy-safe-recipes
+            git pull
+            docker compose -f docker-compose.yml -f docker-compose.prod.yml pull
+            docker compose -f docker-compose.yml -f docker-compose.prod.yml up -d
