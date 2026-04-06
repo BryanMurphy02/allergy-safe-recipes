@@ -105,6 +105,8 @@ jobs:
     needs: [lint, test]
     runs-on: ubuntu-latest
     steps:
+      # Repo must be checked out so Docker can access the Dockerfile and source code
+      - uses: actions/checkout@v4.2.2
       - name: Build frontend image
         run: docker build -f frontend/Dockerfile -t "frontend-image" .
       
