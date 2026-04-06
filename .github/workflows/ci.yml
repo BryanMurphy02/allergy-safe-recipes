@@ -94,9 +94,22 @@ jobs:
       # . sets the build context to the repo root (allows sharing code between services)
       - name: Build scraper image
         run: docker build -f scraper/Dockerfile -t "scraper-image" .
+  
+  # ─────────────────────────────────────────────
+  # JOB 4: BUILD FRONTEND
+  # Builds the frontend Docker image to verify it
+  # compiles successfully. Runs after lint and test
+  # pass. Runs in parallel with build-scraper and build-api.
+  # ─────────────────────────────────────────────
+  build-frontend:
+    needs: [lint, test]
+    runs-on: ubuntu-latest
+    steps:
+      - name: Build frontend image
+        run: docker build -f frontend/Dockerfile -t "frontend-image"
       
   # ─────────────────────────────────────────────
-  # JOB 4: BUILD API
+  # JOB 5: BUILD API
   # Same as build-scraper but for the api service
   # Runs in parallel with build-scraper
   # ─────────────────────────────────────────────
