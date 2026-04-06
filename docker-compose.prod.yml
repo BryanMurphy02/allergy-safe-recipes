@@ -1,0 +1,17 @@
+# production docker compose to overwrite the dev compose file
+
+services:
+
+  # for each service, get the GitHub Container Regisry name and turn off
+  # build from the developer compose file
+  scraper:
+    image: ghcr.io/bryanmurphy02/scraper:latest
+    build: !reset null
+
+  api:
+    image: ghcr.io/bryanmurphy02/api:latest
+    build: !reset null
+
+  frontend:
+    image: ghcr.io/bryanmurphy02/frontend:latest
+    build: !reset null
