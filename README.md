@@ -43,9 +43,9 @@ A high-level summary of what was learned and implemented is below. A link to mor
  
 > #### Containers
 >
-> There are 4 separate containers working together in a stack: a **Postgres** database, a **Python scraper**, a **Python API**, and a **React/Nginx** frontend. With the exception of the Postgres database, each container has a custom-built image with the root of the project as its context. The database image is pulled first and undergoes a health check before the remaining containers are built. 
-
-> The **React/Nginx** container uses a multi-stage build to keep the final image as small as possible. The first stage installs dependencies and compiles the React app into static files via `npm run build`. The second stage copies only those static files into a fresh **Nginx** image, discarding the Node runtime entirely, and serves them using a custom `nginx.conf`. 
+> There are 4 separate containers working together in a stack: a **Postgres** database, a **Python scraper**, a **Python API**, and a **React/Nginx** frontend. With the exception of the Postgres database, each container has a custom-built image with the root of the project as its context. The database image is pulled first and undergoes a health check before the remaining containers are built.
+>
+> The **React/Nginx** container uses a multi-stage build to keep the final image as small as possible. The first stage installs dependencies and compiles the React app into static files via `npm run build`. The second stage copies only those static files into a fresh **Nginx** image, discarding the Node runtime entirely, and serves them using a custom `nginx.conf`.
 >
 > Each container is placed on a specific network, enabling communication only with the necessary services:
 >
