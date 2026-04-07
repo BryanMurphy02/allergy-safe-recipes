@@ -1,6 +1,12 @@
+# Deployment workflow — triggers automatically when CI passes on main
+# Builds and pushes Docker images to GHCR, then deploys to production server
+
 # Name of the workflow — appears in the GitHub Actions tab
 name: Deploy
 
+
+# Triggered by the CI workflow completing on main
+# Only proceeds to deploy if CI actually passed (checked in deploy-latest-images job)
 on:
   workflow_run:
     workflows: ["CI"]
@@ -11,6 +17,12 @@ on:
 
 jobs:
 
+  # ─────────────────────────────────────────────
+  # JOB 1: BUILD AND PUSH SCRAPER
+  # Builds the scraper Docker image and pushes it
+  # to GitHub Container Registry (GHCR).
+  # Runs in parallel with build-push-api and build-push-frontend
+  # ─────────────────────────────────────────────
   build-push-scraper:
     # Spins up a fresh Ubuntu virtual machine for this job
     runs-on: ubuntu-latest
@@ -18,14 +30,17 @@ jobs:
       # Copies the repo onto the runner
       - uses: actions/checkout@v4.2.2
 
-      # logging into GHCR
+      # Authenticates with GHCR so we can push images
+      # github.actor is whoever triggered the workflow
+      # GHCR_TOKEN is a personal access token stored in repo secrets
       - uses: docker/login-action@v3
         with:
           registry: ghcr.io
           username: ${{ github.actor }}
           password: ${{ secrets.GHCR_TOKEN }}
       
-      # building and pushing scraper image
+      # Builds the scraper image from the repo root as build context
+      # and pushes it to GHCR tagged as latest
       - uses: docker/build-push-action@v5
         with:
           context: .
@@ -34,6 +49,11 @@ jobs:
           tags: ghcr.io/bryanmurphy02/scraper:latest
 
 
+  # ─────────────────────────────────────────────
+  # JOB 2: BUILD AND PUSH API
+  # Same as build-push-scraper but for the api service
+  # Runs in parallel with build-push-scraper and build-push-frontend
+  # ─────────────────────────────────────────────
   build-push-api:
     # Spins up a fresh Ubuntu virtual machine for this job
     runs-on: ubuntu-latest
@@ -56,6 +76,13 @@ jobs:
           push: true
           tags: ghcr.io/bryanmurphy02/api:latest
 
+  # ─────────────────────────────────────────────
+  # JOB 3: BUILD AND PUSH FRONTEND
+  # Same as build-push-scraper but for the frontend service
+  # Uses a multi-stage build — Node.js compiles the app,
+  # nginx serves the output. Only nginx ends up in the final image.
+  # Runs in parallel with build-push-scraper and build-push-api
+  # ─────────────────────────────────────────────
   build-push-frontend:
     # Spins up a fresh Ubuntu virtual machine for this job
     runs-on: ubuntu-latest
@@ -78,27 +105,39 @@ jobs:
           push: true
           tags: ghcr.io/bryanmurphy02/frontend:latest
 
-  # deploying new images to server
+  # ─────────────────────────────────────────────
+  # JOB 4: DEPLOY TO PRODUCTION SERVER
+  # Runs after all three build jobs pass.
+  # Connects to the production server via Tailscale + SSH,
+  # writes a fresh .env from GitHub secrets/variables,
+  # pulls the new images from GHCR and restarts containers.
+  # ─────────────────────────────────────────────
   deploy-latest-images:
 
-    # specifys the github environment
+    # Grants access to production environment secrets and variables
+    # Production environment is configured in GitHub repo settings
     environment: production
 
-    # checking to make sure the CI was actually a success and didn't just "complete"
+    # Only deploy if CI actually passed — not just completed
+    # Prevents deploying broken code if CI failed
     if: ${{ github.event.workflow_run.conclusion == 'success' }}
 
-    # needs the following jobs to be completed to run
+    # All three images must be pushed to GHCR before deploying
     needs: [build-push-scraper, build-push-api, build-push-frontend]
 
     # Spins up a fresh Ubuntu virtual machine for this job
     runs-on: ubuntu-latest
     steps:
-      # joining the tailscale network
+      # Joins the Tailscale VPN so the runner can reach the production server
+      # The server is not exposed to the public internet — only accessible via Tailscale
+      # TAILSCALE_AUTHKEY is an ephemeral reusable key stored in repo secrets
       - uses: tailscale/github-action@v2
         with:
           authkey: ${{ secrets.TAILSCALE_AUTHKEY }}
       
-      # SSH into server and pull latest
+      # SSHs into the production server and runs the deployment script
+      # SERVER_HOST is the Tailscale IP of the server
+      # SERVER_USER and SSH_PRIVATE_KEY are stored in repo secrets
       - uses: appleboy/ssh-action@v1
         with:
           host: ${{ secrets.SERVER_HOST }}
