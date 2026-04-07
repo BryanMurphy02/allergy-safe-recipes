@@ -28,6 +28,10 @@ services:
       # running db/schema when spinning up the database for the first time
       - ./db/schema.sql:/docker-entrypoint-initdb.d/schema.sql
 
+    # add the database to the backend network
+    networks:
+      - backend
+
   scraper:
     # gives the image a build name
     image: scraper-image
@@ -46,6 +50,10 @@ services:
     depends_on:
       database:
         condition: service_healthy
+
+    # add scraper to the backend network
+    networks:
+      - backend
 
   api:
     # gives the image a build name
@@ -70,6 +78,11 @@ services:
       database:
         condition: service_healthy
 
+    # add the api to both frontend and backend networks
+    networks:
+      - backend
+      - frontend
+
   frontend:
     # gives the image a build name
     image: frontend-image
@@ -85,6 +98,15 @@ services:
     depends_on:
       - api
 
+    # add the frontend to front end network
+    networks:
+      - frontend
+
 volumes:
   # named volume so the database data persists
   postgres_data:
+
+# creating docker networks to specify which containers can talk to which
+networks:
+  backend:
+  frontend:
