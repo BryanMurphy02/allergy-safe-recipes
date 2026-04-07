@@ -40,28 +40,28 @@ A high-level summary of what was learned and implemented is below. A link to mor
 ## DevOps Overview
 
 ### Docker
-
-#### Docker Containers
-
-There are 4 separate containers working together in a stack: a **Postgres** database, a **Python scraper**, a **Python API**, and a **React/Nginx** frontend. With the exception of the Postgres database, each container has a custom-built image with the root of the project as its context. The database image is pulled first and undergoes a health check before the remaining containers are built.
-
-Each container is placed on a specific network, enabling communication only with the necessary services:
-
-| Container | Network(s)        |
-|-----------|-------------------|
-| Database  | Backend           |
-| Scraper   | Backend           |
-| API       | Frontend, Backend |
-| Frontend  | Frontend          |
-
----
-
-#### Docker Compose Files
-
-There are two Docker Compose files:
-
-- **`docker-compose.yml`** — The base configuration covering everything described above.
-- **`docker-compose.prod.yml`** — A production overlay that overwrites select portions of the base config, specifically tailored for a home Linux server. This file overrides image names to integrate with the CD pipeline, and closes off exposed ports so the stack is only reachable via an external Docker network.
+ 
+> #### Containers
+>
+> There are 4 separate containers working together in a stack: a **Postgres** database, a **Python scraper**, a **Python API**, and a **React/Nginx** frontend. With the exception of the Postgres database, each container has a custom-built image with the root of the project as its context. The database image is pulled first and undergoes a health check before the remaining containers are built.
+>
+> Each container is placed on a specific network, enabling communication only with the necessary services:
+>
+> | Container | Network(s)        |
+> |-----------|-------------------|
+> | Database  | Backend           |
+> | Scraper   | Backend           |
+> | API       | Frontend, Backend |
+> | Frontend  | Frontend          |
+>
+> ---
+>
+> #### Compose Files
+>
+> There are two Docker Compose files:
+>
+> - **`docker-compose.yml`** — The base configuration covering everything described above.
+> - **`docker-compose.prod.yml`** — A production overlay that overwrites select portions of the base config, specifically tailored for a home Linux server. This file overrides image names to integrate with the CD pipeline, and closes off exposed ports so the stack is only reachable via an external Docker network.
 
 ### CI
 
