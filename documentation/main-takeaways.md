@@ -4,8 +4,11 @@ Things learned:
 
 -more work with multi-container stacks
 -building multiple custom docker images in one repo
+-building non python containers
 -making multi-build docker images
 
+-intro to GitHub Actions
+-branch protection
 -creating CI pipeline to run linting and test on actions like a push or PR
 -running jobs in parallel or waiting for other jobs to complete
 
