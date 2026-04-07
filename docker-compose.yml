@@ -14,9 +14,6 @@ services:
       POSTGRES_USER: ${DB_USER}
       POSTGRES_PASSWORD: ${DB_PASSWORD}
       POSTGRES_DB: ${DB_NAME}
-    # need to make sure the DB_PORT isn't already in use on the server
-    ports:
-      - "${DB_PORT}:5432"
     
     # runs a health check on the database to see if it is taking connections
     healthcheck:
@@ -31,6 +28,10 @@ services:
       # running db/schema when spinning up the database for the first time
       - ./db/schema.sql:/docker-entrypoint-initdb.d/schema.sql
 
+    # add the database to the backend network
+    networks:
+      - backend
+
   scraper:
     # gives the image a build name
     image: scraper-image
@@ -43,12 +44,16 @@ services:
     
     environment:
       # database url loaded from the .env in project root
-      DATABASE_URL: postgresql://${DB_USER}:${DB_PASSWORD}@database:5432/${DB_NAME}
+      DATABASE_URL: ${DATABASE_URL}
 
     # make sure the database is running first and taking connections
     depends_on:
       database:
         condition: service_healthy
+
+    # add scraper to the backend network
+    networks:
+      - backend
 
   api:
     # gives the image a build name
@@ -62,7 +67,7 @@ services:
 
     environment:
       # database url
-      DATABASE_URL: postgresql://${DB_USER}:${DB_PASSWORD}@database:5432/${DB_NAME}
+      DATABASE_URL: ${DATABASE_URL}
 
     # running on local port 8001 because 8000 in use
     ports:
@@ -72,6 +77,11 @@ services:
     depends_on:
       database:
         condition: service_healthy
+
+    # add the api to both frontend and backend networks
+    networks:
+      - backend
+      - frontend
 
   frontend:
     # gives the image a build name
@@ -88,6 +98,15 @@ services:
     depends_on:
       - api
 
+    # add the frontend to front end network
+    networks:
+      - frontend
+
 volumes:
   # named volume so the database data persists
   postgres_data:
+
+# creating docker networks to specify which containers can talk to which
+networks:
+  backend:
+  frontend:

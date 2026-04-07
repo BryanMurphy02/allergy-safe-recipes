@@ -11,6 +11,8 @@ services:
   api:
     image: ghcr.io/bryanmurphy02/api:latest
     build: !reset null
+    # close the ports for production
+    ports: !reset []
 
   frontend:
     image: ghcr.io/bryanmurphy02/frontend:latest
