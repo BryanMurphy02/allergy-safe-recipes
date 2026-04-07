@@ -77,6 +77,21 @@ A high-level summary of what was learned and implemented is below. A link to mor
 
 ### CD
 
+> #### Overview
+>
+> The Continuous Deployment workflow treats the `main` branch and a home Linux server as **production**. This workflow only triggers once the CI pipeline has completed successfully on `main` following a merged pull request.
+>
+> ---
+>
+> #### Deployment Steps
+>
+> 1. **Build & Push Images** — Three parallel runners build and push the custom Docker images to **GHCR**, tagging each as `latest`.
+> 2. **Connect to Production** — Once all images are built, the pipeline joins a **Tailscale** network and SSHes into the production server.
+> 3. **Deploy** — A script runs on the server to:
+>    - Create environment variables sourced from the production environment secrets on GitHub
+>    - Pull the latest version of `main`
+>    - Pull and run the latest Docker images from **GHCR**
+
 *Last updated: 4/7/2026*
 
 ## Software Overview
