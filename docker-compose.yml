@@ -43,7 +43,7 @@ services:
     
     environment:
       # database url loaded from the .env in project root
-      DATABASE_URL: postgresql://${DB_USER}:${DB_PASSWORD}@database:5432/${DB_NAME}
+      DATABASE_URL: ${DATABASE_URL}
 
     # make sure the database is running first and taking connections
     depends_on:
@@ -62,7 +62,7 @@ services:
 
     environment:
       # database url
-      DATABASE_URL: postgresql://${DB_USER}:${DB_PASSWORD}@database:5432/${DB_NAME}
+      DATABASE_URL: ${DATABASE_URL}
 
     # running on local port 8001 because 8000 in use
     ports:
