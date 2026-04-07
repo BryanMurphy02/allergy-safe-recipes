@@ -14,9 +14,6 @@ services:
       POSTGRES_USER: ${DB_USER}
       POSTGRES_PASSWORD: ${DB_PASSWORD}
       POSTGRES_DB: ${DB_NAME}
-    # need to make sure the DB_PORT isn't already in use on the server
-    ports:
-      - "${DB_PORT}:5432"
     
     # runs a health check on the database to see if it is taking connections
     healthcheck:
