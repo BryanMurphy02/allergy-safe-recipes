@@ -81,6 +81,9 @@ jobs:
   # deploying new images to server
   deploy-latest-images:
 
+    # specifys the github environment
+    environment: production
+
     # checking to make sure the CI was actually a success and didn't just "complete"
     if: ${{ github.event.workflow_run.conclusion == 'success' }}
 
@@ -101,8 +104,25 @@ jobs:
           host: ${{ secrets.SERVER_HOST }}
           username: ${{ secrets.SERVER_USER }}
           key: ${{ secrets.SSH_PRIVATE_KEY }}
+
+          # first script block makes the .env
+          # second script block pulls the git repo and images then runs them
           script: |
+            cat > /opt/docker/allergy-safe-recipes/.env << 'EOF'
+            DB_HOST=${{ vars.DB_HOST }}
+            DB_PORT=${{ vars.DB_PORT }}
+            DB_NAME=${{ vars.DB_NAME }}
+            DB_USER=${{ vars.DB_USER }}
+            DB_PASSWORD=${{ secrets.DB_PASSWORD }}
+            DATABASE_URL=postgresql://${{ vars.DB_USER }}:${{ secrets.DB_PASSWORD }}@database:5432/${{ vars.DB_NAME }}              
+            BBC_ENABLED=${{ vars.BBC_ENABLED }}
+            SCRAPE_INTERVAL_HOURS=${{ vars.SCRAPE_INTERVAL_HOURS }}
+            MAX_SITEMAPS=${{ vars.MAX_SITEMAPS }}
+            EOF
+            
+            
             cd /opt/docker/allergy-safe-recipes
             git pull
             docker compose -f docker-compose.yml -f docker-compose.prod.yml pull
             docker compose -f docker-compose.yml -f docker-compose.prod.yml up -d
+            
