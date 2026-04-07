@@ -39,7 +39,9 @@ A high-level summary of what was learned and implemented is below. A link to mor
 
 ## DevOps Overview
 
-### Docker Containers
+### Docker
+
+#### Docker Containers
 
 There are 4 separate containers working together in a stack: a **Postgres** database, a **Python scraper**, a **Python API**, and a **React/Nginx** frontend. With the exception of the Postgres database, each container has a custom-built image with the root of the project as its context. The database image is pulled first and undergoes a health check before the remaining containers are built.
 
@@ -54,7 +56,7 @@ Each container is placed on a specific network, enabling communication only with
 
 ---
 
-### Docker Compose Files
+#### Docker Compose Files
 
 There are two Docker Compose files:
 
