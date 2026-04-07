@@ -17,3 +17,10 @@ services:
   frontend:
     image: ghcr.io/bryanmurphy02/frontend:latest
     build: !reset null
+    networks:
+      - nexus-network
+
+# adding the external network so it can talk to Nginx
+networks:
+  nexus-network:
+    external: true
