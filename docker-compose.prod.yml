@@ -7,6 +7,8 @@ services:
   scraper:
     image: ghcr.io/bryanmurphy02/scraper:latest
     build: !reset null
+    # close the ports for production
+    ports: !reset []
 
   api:
     image: ghcr.io/bryanmurphy02/api:latest
@@ -17,6 +19,8 @@ services:
   frontend:
     image: ghcr.io/bryanmurphy02/frontend:latest
     build: !reset null
+    # close the ports for production
+    ports: !reset []
     networks:
       - nexus-network
 
