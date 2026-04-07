@@ -65,6 +65,16 @@ A high-level summary of what was learned and implemented is below. A link to mor
 
 ### CI
 
+> #### Linting, Testing & Branch Protection
+>
+> The Continuous Integration workflow uses GitHub Actions to run Python linting with **Ruff** and Python testing with **pytest** in parallel runners. This triggers on every push to the `dev` branch and on every pull request. The `main` branch also has branch protection enabled — nothing can be pushed directly to `main`, and pull requests can only be merged once linting and all tests pass.
+>
+> ---
+>
+> #### Docker Image Validation
+>
+> After linting and tests pass, the CI pipeline kicks off three additional parallel runners to verify that the custom Docker images for the **scraper**, **API**, and **frontend** build successfully.
+
 ### CD
 
 *Last updated: 4/7/2026*
