@@ -105,7 +105,7 @@ A high-level summary of what was learned and implemented is below. A link to mor
 >
 > The production Compose file is specifically engineered to run on a home Linux server, which is why no ports are directly exposed.
 
-*Last updated: 4/7/2026*
+*Last updated: 4/8/2026*
 
 ## Software Overview
  
@@ -129,32 +129,3 @@ The API layer is built with FastAPI and SQLAlchemy, exposing a REST interface th
 | Monitoring | Prometheus, Grafana |
 
 ---
-
-
-
-## DevOps Notes
-
-This project is intentionally structured to provide DevOps practice across:
-
-- Writing and managing multi-stage Dockerfiles
-- Docker Compose networking and volume management
-- Scheduled jobs via cron inside containers
-- CI pipeline with GitHub Actions (lint, test, build)
-- Health and metrics endpoints for Prometheus scraping
-- Grafana dashboards for scrape success rate, recipe count over time, allergen distribution
-
----
-
-## Roadmap
-
-- [x] Database schema
-- [ ] Scraper — BBC Good Food
-- [ ] Scraper — Serious Eats
-- [ ] Allergen matching logic
-- [ ] Dietary tag detection
-- [ ] FastAPI layer
-- [ ] Docker Compose setup
-- [ ] GitHub Actions CI
-- [ ] Prometheus + Grafana monitoring
-- [ ] Frontend
-
