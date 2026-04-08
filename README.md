@@ -94,6 +94,17 @@ A high-level summary of what was learned and implemented is below. A link to mor
 >    - Pull the latest version of `main`
 >    - Pull and run the latest Docker images from **GHCR**
 
+### Current Port Usage
+
+> The ports exposed by the project depend on which Docker Compose file is used:
+>
+> | Environment | Port Mapping | Notes                                                             |
+> |-------------|--------------|-------------------------------------------------------------------|
+> | Default     | `9001:80`    | Host port `9001` → container port `80` (frontend)                |
+> | Production  | None         | All ports closed; accessible only via an external Docker network  |
+>
+> The production Compose file is specifically engineered to run on a home Linux server, which is why no ports are directly exposed.
+
 *Last updated: 4/7/2026*
 
 ## Software Overview
@@ -118,18 +129,6 @@ The API layer is built with FastAPI and SQLAlchemy, exposing a REST interface th
 | Monitoring | Prometheus, Grafana |
 
 ---
-
-
-## Current Port Usage
-
-The ports exposed by the project depend on which Docker Compose file is used:
-
-| Environment | Port Mapping | Notes                                      |
-|-------------|--------------|---------------------------------------------|
-| Default     | `9001:80`    | Host port `9001` → container port `80` (frontend) |
-| Production  | None         | All ports closed; accessible only via an external Docker network |
-
-The production Compose file is specifically engineered to run on a home Linux server, which is why no ports are directly exposed.
 
 
 
